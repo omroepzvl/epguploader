@@ -47,7 +47,7 @@ public class JobProcessEPG implements Job {
       Instant last = null;
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx")
-              .withZone(ZoneId.systemDefault());
+          .withZone(ZoneId.systemDefault());
       
       String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
       String appConfigPath = "C:/apps/zvlepguploader/classes/app.properties";
