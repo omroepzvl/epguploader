@@ -28,7 +28,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAmount;
 import java.util.*;
 
 public class JobProcessEPG implements Job {
@@ -49,13 +48,14 @@ public class JobProcessEPG implements Job {
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx")
           .withZone(ZoneId.systemDefault());
       
-      String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
       String appConfigPath = "C:/apps/zvlepguploader/classes/app.properties";
       
       Properties appProps = new Properties();
       appProps.load(new FileInputStream(appConfigPath));
       
       String ignoreList = appProps.getProperty("ignorelist");
+      String newsPrefix = appProps.getProperty("newsprefix");
+      String newsTitle = appProps.getProperty("newstitle");
       
       nextEventId = Integer.parseInt(appProps.get("eventid").toString());
       nextProgrammeId = Integer.parseInt(appProps.get("programmeid").toString());
@@ -77,7 +77,7 @@ public class JobProcessEPG implements Job {
                 .build();
         
         Call call = client.newCall(request);
-        String responseStr = "";
+        String responseStr;
         try (Response response = call.execute()) {
           responseStr = response.body().string();
         }
@@ -85,8 +85,6 @@ public class JobProcessEPG implements Job {
         XmlMapper mapper = new XmlMapper();
         mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
         Playlist[] playlists = mapper.readValue(responseStr, Playlist[].class);
-        
-        Instant nextItemShouldStartHere = null;
         
         List<Timeslot> timeslots = new ArrayList<>();
         List<Programme> programmes = new ArrayList<>();
@@ -99,8 +97,6 @@ public class JobProcessEPG implements Job {
         
         for (Playlist playlist : playlists) {
           for (Item item : playlist.getItems()) {
-            
-            
             boolean ignore = false;
             
             for (String ignoreItem : StringUtils.split(ignoreList, ',')) {
@@ -115,7 +111,6 @@ public class JobProcessEPG implements Job {
             Instant start = sdf.parse(item.getStart_time()).toInstant();
             
             //check if this item starts where the previous ended
-            
             if (currentItemEndDate != null) {
               Duration dur = Duration.between(currentItemEndDate, start);
               if (dur.getSeconds() > 1) {
@@ -135,20 +130,28 @@ public class JobProcessEPG implements Job {
             
             currentItemEndDate = start.plusMillis(durationMillis);
             
-            if (ignore && !timeslots.isEmpty()) {
+            Timeslot previousItem = timeslots.isEmpty() ? null : timeslots.get(timeslots.size() - 1);
+            
+            boolean isNewsItem = StringUtils.startsWith(item.getName(), newsPrefix);
+            boolean previousWasNewsItem = previousItem == null ? false : StringUtils.equals(previousItem.getProgrammeref().getIdref(), "id-999");
+            
+            if (ignore && !timeslots.isEmpty() || (isNewsItem && previousWasNewsItem)) {
               //prolong the previous item with this one
-              Timeslot previousItem = timeslots.get(timeslots.size() - 1);
               previousItem.durationMs = previousItem.durationMs + durationMillis;
               String durationS = DurationFormatUtils.formatDuration(previousItem.durationMs, "HH:mm:ss", true);
               previousItem.setOnairduration(durationS);
               timeslots.set(timeslots.size() - 1, previousItem);
             } else if (!ignore) {
+              if (isNewsItem) {
+                item.setName(newsTitle);
+              }
+              
               //try to find the programme in the list
               int programmeId;
               if (programmeNameList.containsKey(item.getName())) {
                 programmeId = programmeNameList.get(item.getName());
               } else {
-                programmeId = getNextProgrammeId();
+                programmeId = isNewsItem ? 999 : getNextProgrammeId();
                 programmeNameList.put(item.getName(), programmeId);
                 Programme programme = new Programme(String.format("id-%d", programmeId));
                 programme.setTextElements(new TextElements(item.getName(), item.getDescription()));
@@ -199,6 +202,8 @@ public class JobProcessEPG implements Job {
         appProps.setProperty("eventid", nextEventId + "");
         appProps.setProperty("programmeid", nextProgrammeId + "");
         appProps.store(new FileWriter(appConfigPath), "updated ids");
+        
+        log.error("Uploading");
         
         //upload the file
         FTPSClient ftpClient = new FTPSClient(false);

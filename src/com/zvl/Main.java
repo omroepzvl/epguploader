@@ -5,15 +5,13 @@ import org.apache.logging.log4j.Logger;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
-import java.io.*;
-
 
 public class Main {
   protected static final Logger log = LogManager.getLogger(Main.class);
   static Scheduler scheduler;
   
   
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) {
     log.trace("Initializing");
     
     try {
@@ -25,7 +23,7 @@ public class Main {
               .withIdentity("ProcessEPG", "group1")
               .build();
       
-      // Trigger the job to run now, and then every 40 seconds
+      // Trigger the job to run now, and then every hour
       SimpleScheduleBuilder scb = SimpleScheduleBuilder.repeatHourlyForever();
       Trigger trigger = TriggerBuilder.newTrigger().withSchedule(scb).build();
       
@@ -33,7 +31,7 @@ public class Main {
       scheduler.scheduleJob(job, trigger);
       
     } catch(Exception e) {
-      log.error("Exception!" + e.getMessage());
+      log.error("Exception! {}", e.getMessage());
       throw new RuntimeException(e);
     }
   }
