@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAmount;
 import java.util.*;
 
 public class JobProcessEPG implements Job {
@@ -49,7 +50,7 @@ public class JobProcessEPG implements Job {
               .withZone(ZoneId.systemDefault());
       
       String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-      String appConfigPath = rootPath + "app.properties";
+      String appConfigPath = "C:/apps/zvlepguploader/classes/app.properties";
       
       Properties appProps = new Properties();
       appProps.load(new FileInputStream(appConfigPath));
@@ -63,9 +64,16 @@ public class JobProcessEPG implements Job {
       Map<String, Integer> programmeNameList = new HashMap<>();
       
       try {
+        SimpleDateFormat sdf2 = new SimpleDateFormat("dd-MM-yyyy");
+        
+        Calendar now = Calendar.getInstance();
+        Calendar in7days = Calendar.getInstance();
+        in7days.add(Calendar.DATE, 7);
+        
+        String url = String.format(appProps.getProperty("originalEPGUrl"), sdf2.format(now.getTime()), sdf2.format(in7days.getTime()));
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .url(appProps.getProperty("originalEPGUrl"))
+                .url(url)
                 .build();
         
         Call call = client.newCall(request);
@@ -144,7 +152,7 @@ public class JobProcessEPG implements Job {
                 programmeNameList.put(item.getName(), programmeId);
                 Programme programme = new Programme(String.format("id-%d", programmeId));
                 programme.setTextElements(new TextElements(item.getName(), item.getDescription()));
-                programme.setImageUrl("https://www.omroepzvl.nl/logo.png");
+                programme.setImageUrl("https://www.omroephulst.tv/scheldemond.png");
                 programmes.add(programme);
               }
               
@@ -204,7 +212,7 @@ public class JobProcessEPG implements Job {
         System.out.println("Error: " + ex.getMessage());
       }
     } catch (Exception e) {
-      //error
+      log.error("Exception: " + e.getMessage());
     }
   }
   

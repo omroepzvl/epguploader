@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/OHPlayout.iml" filepath="$PROJECT_DIR$/OHPlayout.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ZVLEPGUploader.iml" filepath="$PROJECT_DIR$/ZVLEPGUploader.iml" />
     </modules>
   </component>
 </project>
