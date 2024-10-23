@@ -46,7 +46,7 @@ public class JobProcessEPG implements Job {
       Instant last = null;
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx")
-              .withZone(ZoneId.systemDefault());
+          .withZone(ZoneId.systemDefault());
       
       String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
       String appConfigPath = rootPath + "app.properties";
@@ -65,8 +65,8 @@ public class JobProcessEPG implements Job {
       try {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .url(appProps.getProperty("originalEPGUrl"))
-                .build();
+            .url(appProps.getProperty("originalEPGUrl"))
+            .build();
         
         Call call = client.newCall(request);
         String responseStr = "";
