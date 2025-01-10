@@ -198,7 +198,8 @@ public class JobProcessEPG implements Job {
         dataImport.setProgramme(programmes);
         
         String xml = mapper.enable(SerializationFeature.WRAP_ROOT_VALUE).writer().withRootName("dataimport").withDefaultPrettyPrinter().writeValueAsString(dataImport);
-        FileUtils.writeStringToFile(new File("guide.xml"), xml, StandardCharsets.UTF_8);
+        String tempDir = System.getProperty("java.io.tmpdir");
+        FileUtils.writeStringToFile(new File(tempDir,"guide.xml"), xml, StandardCharsets.UTF_8);
         
         //write back the ids
         appProps.setProperty("eventid", nextEventId + "");
@@ -213,11 +214,11 @@ public class JobProcessEPG implements Job {
         ftpClient.login(appProps.getProperty("ftpuser"), appProps.getProperty("ftppassword"));
         ftpClient.enterLocalPassiveMode();
         
-        FileInputStream fis = new FileInputStream("guide.xml");
+        FileInputStream fis = new FileInputStream(tempDir + "/guide.xml");
         ftpClient.storeFile("/domains/omroephulst.tv/public_html/guide.xml", fis);
         fis.close();
         
-        FileInputStream fis2 = new FileInputStream("guide.xml");
+        FileInputStream fis2 = new FileInputStream("/tmp/guide.xml");
         ftpClient.storeFile("/domains/omroephulst.tv/public_html/guidezvl.xml", fis2);
         fis2.close();
         
