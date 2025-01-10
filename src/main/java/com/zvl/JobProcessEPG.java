@@ -212,9 +212,15 @@ public class JobProcessEPG implements Job {
         ftpClient.connect(appProps.getProperty("ftphost"), 21);
         ftpClient.login(appProps.getProperty("ftpuser"), appProps.getProperty("ftppassword"));
         ftpClient.enterLocalPassiveMode();
+        
         FileInputStream fis = new FileInputStream("guide.xml");
         ftpClient.storeFile("/domains/omroephulst.tv/public_html/guide.xml", fis);
-        ftpClient.storeFile("/domains/omroephulst.tv/public_html/guidezvl.xml", fis);
+        fis.close();
+        
+        FileInputStream fis2 = new FileInputStream("guide.xml");
+        ftpClient.storeFile("/domains/omroephulst.tv/public_html/guidezvl.xml", fis2);
+        fis2.close();
+        
         ftpClient.logout();
       } catch (Exception ex) {
         System.out.println("Error: " + ex.getMessage());
