@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAmount;
 import java.util.*;
 
 public class JobProcessEPG implements Job {
@@ -48,7 +49,8 @@ public class JobProcessEPG implements Job {
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx")
           .withZone(ZoneId.systemDefault());
       
-      String appConfigPath = "C:/apps/zvlepguploader/classes/app.properties";
+      String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+      String appConfigPath = "/etc/zvlepguploader.properties";
       
       Properties appProps = new Properties();
       appProps.load(new FileInputStream(appConfigPath));
@@ -196,7 +198,7 @@ public class JobProcessEPG implements Job {
         dataImport.setProgramme(programmes);
         
         String xml = mapper.enable(SerializationFeature.WRAP_ROOT_VALUE).writer().withRootName("dataimport").withDefaultPrettyPrinter().writeValueAsString(dataImport);
-        FileUtils.writeStringToFile(new File("guidezvl.xml"), xml, StandardCharsets.UTF_8);
+        FileUtils.writeStringToFile(new File("guide.xml"), xml, StandardCharsets.UTF_8);
         
         //write back the ids
         appProps.setProperty("eventid", nextEventId + "");
@@ -210,7 +212,8 @@ public class JobProcessEPG implements Job {
         ftpClient.connect(appProps.getProperty("ftphost"), 21);
         ftpClient.login(appProps.getProperty("ftpuser"), appProps.getProperty("ftppassword"));
         ftpClient.enterLocalPassiveMode();
-        FileInputStream fis = new FileInputStream("guidezvl.xml");
+        FileInputStream fis = new FileInputStream("guide.xml");
+        ftpClient.storeFile("/domains/omroephulst.tv/public_html/guide.xml", fis);
         ftpClient.storeFile("/domains/omroephulst.tv/public_html/guidezvl.xml", fis);
         ftpClient.logout();
       } catch (Exception ex) {
