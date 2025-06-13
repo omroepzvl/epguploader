@@ -28,7 +28,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAmount;
 import java.util.*;
 
 public class JobProcessEPG implements Job {
@@ -58,6 +57,7 @@ public class JobProcessEPG implements Job {
       String ignoreList = appProps.getProperty("ignorelist");
       String newsPrefix = appProps.getProperty("newsprefix");
       String newsTitle = appProps.getProperty("newstitle");
+      String defaultImage = appProps.getProperty("defaultimage");
       
       nextEventId = Integer.parseInt(appProps.get("eventid").toString());
       nextProgrammeId = Integer.parseInt(appProps.get("programmeid").toString());
@@ -95,6 +95,7 @@ public class JobProcessEPG implements Job {
         String dummyProgrammeId = getNextProgrammeId() + "";
         Programme dummyProgramme = new Programme(String.format("id-%s", dummyProgrammeId));
         dummyProgramme.setTextElements(new TextElements(appProps.getProperty("teksttvtitle"), appProps.getProperty("teksttvdescription")));
+        dummyProgramme.setImageUrl(defaultImage);
         programmes.add(dummyProgramme);
         
         for (Playlist playlist : playlists) {
@@ -145,7 +146,7 @@ public class JobProcessEPG implements Job {
               timeslots.set(timeslots.size() - 1, previousItem);
             } else if (!ignore) {
               if (isNewsItem) {
-                item.setName(newsTitle);
+                item.setName(defaultImage);
               }
               
               //try to find the programme in the list
@@ -157,7 +158,7 @@ public class JobProcessEPG implements Job {
                 programmeNameList.put(item.getName(), programmeId);
                 Programme programme = new Programme(String.format("id-%d", programmeId));
                 programme.setTextElements(new TextElements(item.getName(), item.getDescription()));
-                programme.setImageUrl("https://www.omroephulst.tv/omroepzvl.png");
+                programme.setImageUrl(defaultImage);
                 programmes.add(programme);
               }
               
