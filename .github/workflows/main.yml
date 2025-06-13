@@ -26,4 +26,4 @@ jobs:
         run: cp target/*.jar /usr/local/bin/epguploader
 
       - name: Restart service
-        run: systemctl restart omroep-zvl-epg-uploader
+        run: sudo systemctl restart omroep-zvl-epg-uploader
