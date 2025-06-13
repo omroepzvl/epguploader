@@ -23,7 +23,7 @@ jobs:
         run: mvn clean install
         
       - name: Copy JAR locally
-        run: cp target/*.jar /usr/local/bin/epguploader
+        run: sudo cp target/*.jar /usr/local/bin/epguploader
 
       - name: Restart service
         run: sudo systemctl restart omroep-zvl-epg-uploader
