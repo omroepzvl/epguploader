@@ -157,7 +157,7 @@ public class JobProcessEPG implements Job {
                 programmeNameList.put(item.getName(), programmeId);
                 Programme programme = new Programme(String.format("id-%d", programmeId));
                 programme.setTextElements(new TextElements(item.getName(), item.getDescription()));
-                programme.setImageUrl("https://www.omroephulst.tv/scheldemond.png");
+                programme.setImageUrl("https://www.omroephulst.tv/omroepzvl.png");
                 programmes.add(programme);
               }
               
@@ -224,6 +224,7 @@ public class JobProcessEPG implements Job {
         
         ftpClient.logout();
       } catch (Exception ex) {
+        ex.printStackTrace();
         System.out.println("Error: " + ex.getMessage());
       }
     } catch (Exception e) {
