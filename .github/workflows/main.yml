@@ -1,0 +1,42 @@
+name: Deploy to Raspberry Pi
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: zvlrp01
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        run: mvn clean install
+
+      - name: Copy JAR to Raspberry Pi
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.PI_HOST }}
+          username: ${{ secrets.PI_USER }}
+          key: ${{ secrets.PI_SSH_KEY }}
+          source: target/*.jar
+          target: /tmp/ZVLEPGUploader-1.0.jar
+
+      - name: Deploy and restart service
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PI_HOST }}
+          username: ${{ secrets.PI_USER }}
+          key: ${{ secrets.PI_SSH_KEY }}
+          script: |
+            sudo mv /tmp/ZVLEPGUploader-1.0 /usr/local/bin/epguploader
+            sudo systemctl restart omroep-zvl-epg-uploader
